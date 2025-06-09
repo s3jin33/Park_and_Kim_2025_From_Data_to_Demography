@@ -15,9 +15,10 @@ library(readr)
 library(readxl)
 
 getwd()
+setwd("/Users/Sejin_1/Desktop/Sejin_Git/BHDC")
 
 # Reading Data(After Combine ver)
-Data<-read.csv("After_Combine_250604.csv")
+Data<-read.csv("After_Combine_250604( Modified).csv")
 
 # Excluding outliers
 Data_clean <- Data %>% filter(is.na(Mismatch_Flag))
@@ -98,10 +99,12 @@ Data.bins = rcarbon::binPrep(sites=newData$site,ages=newData$age, h=200)
 length(unique(Data.bins)) #453
 Data.spd.bins = spd(Data.caldates,bins=Data.bins,timeRange=c(3500,1200), spdnormalised=TRUE)
 
+ylim_range <- c(0, max(c(SPD[,1], CPL6$pdf)) * 1.1)  # 10% 여유 둠
+
 png('SPD_HanRiverBasin.png',width=9000,height=3000,res=500)
 par(mar=c(5,7,1,1), oma=c(4,6,1,1))
 years <- as.numeric(row.names(SPD))
-plot(NULL,xlim=rev(range(years)), ylim=range(SPD),
+plot(NULL,xlim=rev(range(years)), ylim=ylim_range,
      type='l',xaxt='n',ylab='',xlab='',las=1,cex.axis=3,cex.lab=2.5) 
 axis(1, at=seq(3500, 1200, by=-100), labels=seq(35, 12, by=-1), cex.axis=2.5, padj=1.2, tck=-0.04, lwd=3, font=2)
 axis(2,las=1, cex.axis=3, tck=-0.02, lwd=3, font=2)
@@ -113,10 +116,10 @@ plot(Data.spd.bins,xaxt='n',runm=100,add=TRUE,type="simple",col="#E66100",lwd=6,
 legend("topleft",legend=c("ADMUR", "rcarbon"),
      col=c("#5D3A9B", "#E66100"),lty=c(1,2),lwd=c(6,6), bty='n', cex=2.5)
 x_center <- mean(range(years))
-y_top <- max(SPD[,1]) 
-text(x = x_center, y = y_top * 0.80, labels = "(a) Han River Basin", 
+y_top <- max(CPL6$pdf)  # CPL6의 pdf 최대값 기준으로 변경
+text(x = x_center, y = y_top * 0.9, labels = "(a) Han River Basin", 
      cex = 2.5, font = 2, pos = 3)
-text(x = x_center, y = y_top * 0.65, labels = "N = 2150, bins = 453", 
+text(x = x_center, y = y_top * 0.7, labels = "N = 2150, bins = 453", 
      cex = 2.3, font = 2, pos = 3)
 dev.off()
 
