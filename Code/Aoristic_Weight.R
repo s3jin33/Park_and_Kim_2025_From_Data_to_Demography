@@ -9,7 +9,6 @@ library(here)
 
 here()
 
-# 데이터 읽기
 Data <- read_csv(here("Data","After_Combine.csv"))
 
 Data_clean <- Data %>% filter(is.na(Mismatch_Flag))
