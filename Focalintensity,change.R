@@ -20,7 +20,7 @@ library(spatstat.geom)
 
 getwd()
 
-Data<-read_xlsx("BHDC_FromDatatoDemography(Rcombine 버전)_250528_median.xlsx")
+Data<-read.csv("After_Combine_250604.csv")
 
 # Excluding outliers
 Data_clean <- Data %>% filter(is.na(Mismatch_Flag)) %>% filter(!is.na(Longitude) & !is.na(Latitude)) 

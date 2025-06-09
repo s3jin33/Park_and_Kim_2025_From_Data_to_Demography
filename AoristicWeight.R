@@ -13,25 +13,6 @@ install.packages(ggtext)
 
 
 getwd()
-setwd("/Volumes/SAMSUNG/23-2학회/BHDC/Revision")
-
-# 
-# #Load Data
-# Data<-read.csv("After_Combine_250602.csv")
-# 
-# # Calibration
-# x <- calibrate(x = Data$BP, errors = Data$error, calCurves = 'intcal20')
-# 
-# # Summary
-# summaryx <- summary(x)
-# 
-# # MedianBP 
-# medians <- as.numeric(summaryx$MedianBP)
-# 
-# # Data_clean에 붙이기 (행 수 일치하는지 반드시 확인)
-# Data$median <- medians
-# 
-# write_xlsx(Data, "After_Combine_250604.xlsx")
 
 Data<-read_csv("After_Combine_250604.csv")
 

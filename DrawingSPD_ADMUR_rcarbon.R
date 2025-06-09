@@ -15,9 +15,6 @@ library(readr)
 library(readxl)
 
 getwd()
-setwd("/Volumes/SAMSUNG/23-2학회/BHDC/Revision")
-setwd("D:/23-2학회/BHDC/분석")
-
 
 # Reading Data(After Combine ver)
 Data<-read.csv("After_Combine_250604.csv")
