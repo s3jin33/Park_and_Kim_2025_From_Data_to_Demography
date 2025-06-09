@@ -1,34 +1,19 @@
 library(rcarbon)
 library(dplyr)
-library(RColorBrewer)
 library(ADMUR)
 library(DEoptimR)
-library(dplyr)
-library(purrr)
-library(ggplot2)
-library(maptools)
-library(rworldmap)
-library(spatstat) 
-library("sf")
-library(gridExtra)
-library(readr)
-library(readxl)
+library(here)
 
-getwd()
-setwd("/Users/Sejin_1/Desktop/Sejin_Git/BHDC")
+here()
 
-# Reading Data(After Combine ver)
-Data<-read.csv("After_Combine_250604( Modified).csv")
+Data<- read.csv(here("Data", "/After_Combine.csv"))
 
 # Excluding outliers
 Data_clean <- Data %>% filter(is.na(Mismatch_Flag))
 
-# Checking no. of site codes-> total 228(regardless of period categorization)
-summary(unique(Data$Site_Code))
 
 
-
-################# ADMUR: STEP1 Calculating CPL For Entire Han River Basin(Figure 4a) ###########
+################# ADMUR: STEP1 Calculating CPL For Entire Han River Basin(Figure 2a) ###########
 newData <-Data_clean %>% rename("age"="BP","sd"="error","site"="Site_Code") 
 newData<-as.data.frame(newData)
 
@@ -99,7 +84,7 @@ Data.bins = rcarbon::binPrep(sites=newData$site,ages=newData$age, h=200)
 length(unique(Data.bins)) #453
 Data.spd.bins = spd(Data.caldates,bins=Data.bins,timeRange=c(3500,1200), spdnormalised=TRUE)
 
-ylim_range <- c(0, max(c(SPD[,1], CPL6$pdf)) * 1.1)  # 10% 여유 둠
+ylim_range <- c(0, max(c(SPD[,1], CPL6$pdf)) * 1.1)  
 
 png('SPD_HanRiverBasin.png',width=9000,height=3000,res=500)
 par(mar=c(5,7,1,1), oma=c(4,6,1,1))
@@ -116,7 +101,7 @@ plot(Data.spd.bins,xaxt='n',runm=100,add=TRUE,type="simple",col="#E66100",lwd=6,
 legend("topleft",legend=c("ADMUR", "rcarbon"),
      col=c("#5D3A9B", "#E66100"),lty=c(1,2),lwd=c(6,6), bty='n', cex=2.5)
 x_center <- mean(range(years))
-y_top <- max(CPL6$pdf)  # CPL6의 pdf 최대값 기준으로 변경
+y_top <- max(CPL6$pdf)
 text(x = x_center, y = y_top * 0.9, labels = "(a) Han River Basin", 
      cex = 2.5, font = 2, pos = 3)
 text(x = x_center, y = y_top * 0.7, labels = "N = 2150, bins = 453", 
@@ -125,7 +110,7 @@ dev.off()
 
 
 
-################# ADMUR: STEP2 Calculating CPL For Northern Gyeonggi(Figure 4b) ###########
+################# ADMUR: STEP2 Calculating CPL For Northern Gyeonggi(Figure 2b) ###########
 NG <- newData %>% filter(Sub_Region == "Northern Gyeonggi") #162
 
 CalArray_NG <- makeCalArray(calcurve=intcal20, calrange = c(1200, 3500))
@@ -167,6 +152,7 @@ K_NG <- c(1, 1, 3, 5, 7, 9, 11)
 # calculate BIC for each model
 BICs_NG <- log(N_NG) * K_NG - 2 * loglik_NG
 
+
 # model comparison plot for Northern Gyeonggi Figrue 4-b
 png('BICvalue_NorthernGyeonggi.png', width=4000, height=3000, res=500)
 par(mar=c(8, 8, 2, 1))
@@ -196,28 +182,12 @@ NG.caldates=calibrate(x=NG$age, errors=NG$sd, calCurves='intcal20')
 NG.bins = rcarbon::binPrep(sites=NG$site,ages=NG$age, h=200)
 length(unique(NG.bins)) #44
 NG.spd.bins = spd(NG.caldates,bins=NG.bins,timeRange=c(3500,1200), spdnormalised=TRUE)
-
-png('SPD_NG_CPL4.png',width=9000,height=3000,res=500)
-par(mar=c(5,7,1,1), oma=c(4,6,1,1))
-years <- as.numeric(row.names(SPD_NG))
-plot(NULL,xlim=rev(range(years)), ylim=range(SPD_NG),
-     type='l',xaxt='n',ylab='',xlab='',las=1,cex.axis=3,cex.lab=2.5) 
-axis(1, at=seq(3500, 1200, by=-100), labels=seq(35, 12, by=-1), cex.axis=2.5, padj=1.2, tck=-0.04, lwd=3, font=2)
-axis(2,las=1, cex.axis=3, tck=-0.02, lwd=3, font=2)
-mtext(side=1, text='kyr cal BP',line=6.5, cex=2.5, font=2)
-mtext(side=2, at=max(SPD_NG[,1])/2,text='PD',las=0,cex=2.5, line=9,font=2)
-polygon(c(min(years),years,max(years)),c(0,SPD_NG[,1],0),col="light grey",border="darkgrey")
-lines(CPL4_NG$year,CPL4_NG$pdf,col="#5D3A9B",lwd=6)
-plot(NG.spd.bins,xaxt='n',runm=100,add=TRUE,type="simple",col="#E66100",lwd=6,lty=2, border="black")
-legend("topleft",legend=c("ADMUR", "rcarbon"),
-       col=c("#5D3A9B", "#E66100"),lty=c(1,2),lwd=c(6,6), bty='n', cex=2.5)
-text(x = min(years) + 100, y = max(SPD_NG[,1]) * 0.80, labels = "bins = 44", cex = 2.5, font = 2)
-dev.off()
+NG.ylim_range <- c(0, max(c(SPD_NG[,1], CPL3_NG$pdf)) * 1.1)
 
 png('SPD_NG_CPL3.png',width=9000,height=3000,res=500)
 par(mar=c(5,7,1,1), oma=c(4,6,1,1))
 years <- as.numeric(row.names(SPD_NG))
-plot(NULL,xlim=rev(range(years)), ylim=range(SPD_NG),
+plot(NULL,xlim=rev(range(years)), ylim=NG.ylim_range,
      type='l',xaxt='n',ylab='',xlab='',las=1,cex.axis=3,cex.lab=2.5) 
 axis(1, at=seq(3500, 1200, by=-100), labels=seq(35, 12, by=-1), cex.axis=2.5, padj=1.2, tck=-0.04, lwd=3, font=2)
 axis(2,las=1, cex.axis=3, tck=-0.02, lwd=3, font=2)
@@ -238,7 +208,7 @@ dev.off()
 
 dev.set(dev.next())
 
-################# ADMUR: STEP3 Calculating CPL For Southern Gyeonggi(Figure 4c) ###########
+################# ADMUR: STEP3 Calculating CPL For Southern Gyeonggi(Figure 2c) ###########
 #Filter Data
 SG <- newData %>% filter(Sub_Region == "Southern Gyeonggi") #555
 
@@ -305,12 +275,13 @@ SG.caldates=calibrate(x=SG$age, errors=SG$sd, calCurves='intcal20')
 SG.bins = rcarbon::binPrep(sites=SG$site,ages=SG$age, h=200)
 length(unique(SG.bins)) #145
 SG.spd.bins = spd(SG.caldates,bins=SG.bins,timeRange=c(3500,1200), spdnormalised=TRUE)
+SG.ylim_range <- c(0, max(c(SPD_SG[,1], CPL6_SG$pdf)) * 1.1)  # 10% 여유 둠
 
 
 png('SPD_SG_6CPL.png',width=9000,height=3000,res=500)
 par(mar=c(5,7,1,1), oma=c(4,6,1,1))
 years <- as.numeric(row.names(SPD_SG))
-plot(NULL,xlim=rev(range(years)), ylim=range(SPD_SG),
+plot(NULL,xlim=rev(range(years)), ylim=SG.ylim_range,
      type='l',xaxt='n',ylab='',xlab='',las=1,cex.axis=3,cex.lab=2.5) 
 axis(1, at=seq(3500, 1200, by=-100), labels=seq(35, 12, by=-1), cex.axis=2.5, padj=1.2, tck=-0.04, lwd=3, font=2)
 axis(2,las=1, cex.axis=3, tck=-0.02, lwd=3, font=2)
@@ -322,14 +293,14 @@ plot(SG.spd.bins,xaxt='n',runm=100,add=TRUE,type="simple",col="#E66100",lwd=6,lt
 legend("topleft",legend=c("ADMUR", "rcarbon"),
        col=c("#5D3A9B", "#E66100"),lty=c(1,2),lwd=c(6,6), bty='n', cex=2.5)
 x_center <- mean(range(years))
-y_top <- max(SPD_SG[,1])      
-text(x = x_center, y = y_top * 0.80, labels = "(c) Southern Gyeonggi", 
+y_top <- max(CPL6_SG$pdf)     
+text(x = x_center, y = y_top * 0.95, labels = "(c) Southern Gyeonggi", 
      cex = 2.5, font = 2, pos = 3)
-text(x = x_center, y = y_top * 0.65, labels = "N = 555, bins = 145", 
+text(x = x_center, y = y_top * 0.75, labels = "N = 555, bins = 145", 
      cex = 2.3, font = 2, pos = 3)
 dev.off()
 
-################# ADMUR: STEP4 Calculating CPL For North Han River Basin(Figure 4d) ###########
+################# ADMUR: STEP4 Calculating CPL For North Han River Basin(Figure 2d) ###########
 # Filter Data
 NHRB <- newData %>% filter(Sub_Region == "North Han River Basin") #929
 
@@ -392,13 +363,14 @@ NHRB.caldates=calibrate(x=NHRB$age, errors=NHRB$sd, calCurves='intcal20')
 NHRB.bins = rcarbon::binPrep(sites=NHRB$site,ages=NHRB$age, h=200)
 length(unique(NHRB.bins)) #126
 NHRB.spd.bins = spd(NHRB.caldates,bins=NHRB.bins,timeRange=c(3500,1200), spdnormalised=TRUE)
+NHRB.ylim_range <- c(0, max(c(SPD_NHRB[,1], CPL6_NHRB$pdf)) * 1.1)  
 
 
 
 png('SPD_NHRB_6CPL.png',width=9000,height=3000,res=500)
 par(mar=c(5,7,1,1), oma=c(4,6,1,1))
 years <- as.numeric(row.names(SPD_NHRB))
-plot(NULL,xlim=rev(range(years)), ylim=range(SPD_NHRB),
+plot(NULL,xlim=rev(range(years)), ylim=NHRB.ylim_range,
      type='l',xaxt='n',ylab='',xlab='',las=1,cex.axis=3,cex.lab=2.5) 
 axis(1, at=seq(3500, 1200, by=-100), labels=seq(35, 12, by=-1), cex.axis=2.5, padj=1.2, tck=-0.04, lwd=3, font=2)
 axis(2,las=1, cex.axis=3, tck=-0.02, lwd=3, font=2)
@@ -410,16 +382,16 @@ plot(NHRB.spd.bins,xaxt='n',runm=100,add=TRUE,type="simple",col="#E66100",lwd=6,
 legend("topleft",legend=c("ADMUR", "rcarbon"),
        col=c("#5D3A9B", "#E66100"),lty=c(1,2),lwd=c(6,6), bty='n', cex=2.5)
 x_center <- mean(range(years))
-y_top <- max(SPD_NHRB[,1])      
-text(x = x_center, y = y_top * 0.80, labels = "(d) North Han River Basin", 
+y_top <- max(CPL6_NHRB$pdf)    
+text(x = x_center, y = y_top * 0.90, labels = "(d) North Han River Basin", 
      cex = 2.5, font = 2, pos = 3)
-text(x = x_center, y = y_top * 0.65, labels = "N = 929, bins = 126", 
+text(x = x_center, y = y_top * 0.7, labels = "N = 929, bins = 126", 
      cex = 2.3, font = 2, pos = 3)
 dev.off()
 
 
 
-################# ADMUR: STEP4 Calculating CPL For South Han River Basin(Figure 4e) ###########
+################# ADMUR: STEP4 Calculating CPL For South Han River Basin(Figure 2e) ###########
 # Filter Data
 SHRB <- newData %>% filter(Sub_Region == "South Han River Basin") #230
 
@@ -481,12 +453,13 @@ SHRB.caldates=calibrate(x=SHRB$age, errors=SHRB$sd, calCurves='intcal20')
 SHRB.bins = rcarbon::binPrep(sites=SHRB$site,ages=SHRB$age, h=200)
 length(unique(SHRB.bins)) #70
 SHRB.spd.bins = spd(SHRB.caldates,bins=SHRB.bins,timeRange=c(3500,1200), spdnormalised=TRUE)
+SHRB.ylim_range <- c(0, max(c(SPD_SHRB[,1], CPL5_SHRB$pdf)) * 1.1)  
 
 
 png('SPD_SHRB.png',width=9000,height=3000,res=500)
 par(mar=c(5,7,1,1), oma=c(4,6,1,1))
 years <- as.numeric(row.names(SPD_SHRB))
-plot(NULL,xlim=rev(range(years)), ylim=range(SPD_SHRB),
+plot(NULL,xlim=rev(range(years)), ylim=SHRB.ylim_range,
      type='l',xaxt='n',ylab='',xlab='',las=1,cex.axis=3,cex.lab=2.5) 
 axis(1, at=seq(3500, 1200, by=-100), labels=seq(35, 12, by=-1), cex.axis=2.5, padj=1.2, tck=-0.04, lwd=3, font=2)
 axis(2,las=1, cex.axis=3, tck=-0.02, lwd=3, font=2)
@@ -498,14 +471,14 @@ plot(SHRB.spd.bins,xaxt='n',runm=100,add=TRUE,type="simple",col="#E66100",lwd=6,
 legend("topleft",legend=c("ADMUR", "rcarbon"),
        col=c("#5D3A9B", "#E66100"),lty=c(1,2),lwd=c(6,6), bty='n', cex=2.5)
 x_center <- mean(range(years))
-y_top <- max(SPD_SHRB[,1])      
-text(x = x_center, y = y_top * 0.80, labels = "(e) South Han River Basin", 
+y_top <- max(CPL5_SHRB$pdf)
+text(x = x_center, y = y_top * 0.95, labels = "(e) South Han River Basin", 
      cex = 2.5, font = 2, pos = 3)
-text(x = x_center, y = y_top * 0.65, labels = "N = 230, bins = 70", 
+text(x = x_center, y = y_top * 0.75, labels = "N = 230, bins = 70", 
      cex = 2.3, font = 2, pos = 3)
 dev.off()
 
-################# ADMUR: STEP5 Calculating CPL For West Coast (Figure 4f) ###########
+################# ADMUR: STEP5 Calculating CPL For West Coast (Figure 2f) ###########
 # Filter Data
 WC <- newData %>% filter(Sub_Region == "West Coast") #274
 
@@ -567,12 +540,13 @@ WC.caldates=calibrate(x=WC$age, errors=WC$sd, calCurves='intcal20')
 WC.bins = rcarbon::binPrep(sites=WC$site,ages=WC$age, h=200)
 length(unique(WC.bins)) #69
 WC.spd.bins = spd(WC.caldates,bins=WC.bins,timeRange=c(3500,1200), spdnormalised=TRUE)
+WC.ylim_range <- c(0, max(c(SPD_WC[,1], CPL4_WC$pdf)) * 1.1)  
 
 
 png('SPD_WC.png',width=9000,height=3000,res=500)
 par(mar=c(5,7,1,1), oma=c(4,6,1,1))
 years <- as.numeric(row.names(SPD_WC))
-plot(NULL,xlim=rev(range(years)), ylim=range(SPD_WC),
+plot(NULL,xlim=rev(range(years)), ylim=WC.ylim_range,
      type='l',xaxt='n',ylab='',xlab='',las=1,cex.axis=3,cex.lab=2.5) 
 axis(1, at=seq(3500, 1200, by=-100), labels=seq(35, 12, by=-1), cex.axis=2.5, padj=1.2, tck=-0.04, lwd=3, font=2)
 axis(2,las=1, cex.axis=3, tck=-0.02, lwd=3, font=2)
@@ -584,9 +558,9 @@ plot(WC.spd.bins,xaxt='n',runm=100,add=TRUE,type="simple",col="#E66100",lwd=6,lt
 legend("topleft",legend=c("ADMUR", "rcarbon"),
        col=c("#5D3A9B", "#E66100"),lty=c(1,2),lwd=c(6,6), bty='n', cex=2.5)
 x_center <- mean(range(years))
-y_top <- max(SPD_NHRB[,1])      
-text(x = x_center, y = y_top * 0.7, labels = "(f) West Coast", 
+y_top <- max(CPL4_WC$pdf)      
+text(x = x_center, y = y_top * 1.1, labels = "(f) West Coast", 
      cex = 2.5, font = 2, pos = 3)
-text(x = x_center, y = y_top * 0.55, labels = "N = 274, bins = 69", 
+text(x = x_center, y = y_top * 0.9, labels = "N = 274, bins = 69", 
      cex = 2.3, font = 2, pos = 3)
 dev.off()

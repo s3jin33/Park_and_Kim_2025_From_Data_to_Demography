@@ -1,20 +1,16 @@
 library(dplyr)
-library(purrr)
 library(ggplot2)
-library(gridExtra)
 library(readr)
-library(readxl)
 library(stringr)
 library(tidyr)
-library(writexl)
 library(ggsci)
 library(patchwork)
-install.packages(ggtext)
+library(here)
 
+here()
 
-getwd()
-
-Data<-read_csv("After_Combine_250604.csv")
+# 데이터 읽기
+Data <- read_csv(here("Data","After_Combine.csv"))
 
 Data_clean <- Data %>% filter(is.na(Mismatch_Flag))
 

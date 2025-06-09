@@ -1,32 +1,17 @@
 library(rcarbon)
 library(dplyr)
-library(RColorBrewer)
-library(ADMUR)
-library(DEoptimR)
-library(dplyr)
-library(purrr)
-library(ggplot2)
-library(maptools)
-library(rgeos)
-library(rworldmap)
+library(sf)
 library(spatstat)
-library(rgdal)
-library("sf")
-library(gridExtra)
-library(gapminder)
-library(readr)
-library(readxl)
-library(spatstat.geom) 
 
-getwd()
 
-Data<-read.csv("After_Combine_250604.csv")
+Data<- read.csv(here("Data", "/After_Combine.csv"))
 
 # Excluding outliers
 Data_clean <- Data %>% filter(is.na(Mismatch_Flag)) %>% filter(!is.na(Longitude) & !is.na(Latitude)) 
 
 # Loading map
-map_korea <- st_read('/Volumes/SAMSUNG/23-2학회/전국역사학대회/ctprvn_20230729/CTPRVN.shp')
+# http://www.gisdeveloper.co.kr/?p=2332
+map_korea <- st_read(here("ctprvn_20230729", "CTPRVN.shp"))
 
 map_korea$CTPRVN_CD <- iconv(map_korea$CTPRVN_CD,
                              from = 'CP949',
@@ -65,7 +50,7 @@ mapData <- convert_to_EPSG5179(Data_clean, lon_col = "Longitude", lat_col = "Lat
 
 mapData.cal <- calibrate(x=mapData$BP, errors=mapData$error, normalised=TRUE)
 
-stkde <- stkde(x=mapping, coords=mapB2[,c("X","Y")],
+stkde <- stkde(x=mapData.cal, coords=mapData[,c("X","Y")],
                 win=Han_River_Basin, sbw=40000, cellres=5000, focalyears=seq(3500, 1100, -200),
                 tbw=50, bins=NA, backsight=200, outdir="im")
 
@@ -85,7 +70,6 @@ plot(stkde, 1500, type="change",cex.main=3, cex.axis=1.8,font=2, main="(k) 1500-
 plot(stkde, 1300, type="change",cex.main=3, cex.axis=1.8,font=2, main="(l) 1300-1100 cal BP")
 dev.off()
 
-getwd()
 
 png("HanRiverBasinfocalintensity3500-1100.png",width=9000,height=6000,res=500)
 par(mfrow=c(3,4), mar=c(2,2,3,1))
