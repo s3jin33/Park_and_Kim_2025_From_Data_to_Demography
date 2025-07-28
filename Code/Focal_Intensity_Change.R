@@ -10,7 +10,7 @@ Data<- read.csv(here("Data", "/After_Combine.csv"))
 Data_clean <- Data %>% filter(is.na(Mismatch_Flag)) %>% filter(!is.na(Longitude) & !is.na(Latitude)) 
 
 # Loading map
-# http://www.gisdeveloper.co.kr/?p=2332
+# http://www.gisdeveloper.co.kr/download/admin_shp/ctprvn_20230729.zip
 map_korea <- st_read(here("ctprvn_20230729", "CTPRVN.shp"))
 
 map_korea$CTPRVN_CD <- iconv(map_korea$CTPRVN_CD,
